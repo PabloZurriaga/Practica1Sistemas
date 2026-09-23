@@ -7,7 +7,7 @@
 pid_t pidAglobal;
 
 int main(int argc, char argv[]){
-    char letters[3]= "XYZ";
+  
     printf("Soy el proceso ejec: mi pid es %d\n", getpid());//esto solo lo imprime ejec
    
     pid_t pidEjec = getpid();
@@ -63,7 +63,6 @@ int main(int argc, char argv[]){
 
 
 }
-       //  printf("Soy el proceso %c: mi pid es %d. Mi padre es %d. Mi abuelo es %d. Mi bisabuelo es %d\n",letters[i],getpid(), getppid(),pidAglobal,pidEjec);
 
 
 
