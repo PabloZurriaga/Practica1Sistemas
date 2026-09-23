@@ -6,8 +6,32 @@
 
 pid_t pidAglobal;
 
-int main(int argc, char argv[]){
-  
+
+
+void Zfunction(){
+   printf("soy %d y acabo de recibir mi alarma\n",getpid());
+   kill(pidAglobal,SIGUSR1);
+}
+
+
+void Afunction(){
+   printf("soy %d y me ha avisado Z\n",getpid());
+}
+
+
+
+
+
+
+int main(int argc, char *argv[]){
+    
+    if(argc!= 2){
+      exit(0);
+    }
+    
+    int seconds=atoi(argv[1]);
+
+    
     printf("Soy el proceso ejec: mi pid es %d\n", getpid());//esto solo lo imprime ejec
    
     pid_t pidEjec = getpid();
@@ -18,7 +42,8 @@ int main(int argc, char argv[]){
       pidAglobal = getpid();
 
       printf("Soy el proceso A: mi pid es %d. Mi padre es %d\n",getpid(), getppid());
-
+      
+      signal(SIGUSR1,Afunction);
       pid = fork(); // proceso B comienza aquí;
       
       if(pid == 0){
@@ -33,32 +58,35 @@ int main(int argc, char argv[]){
     }
  
     //esto lo hace solo B
-    pid =fork();
+    pid =fork(); //crea a X
 
-    if(pid==0){
+    if(pid ==0){
+     printf("Soy el proceso X: mi pid es %d. Mi padre es %d. Mi abuelo es %d. Mi bisabuelo es %d\n",getpid(), getppid(),pidAglobal,pidEjec);
+     pause();
+    }
+    pid = fork();
 
-       printf("Soy el proceso X: mi pid es %d. Mi padre es %d. Mi abuelo es %d. Mi bisabuelo es %d\n",getpid(), getppid(),pidAglobal,pidEjec);
-       
-       pause(); //paramos a X
+    if(pid ==0){
+     printf("Soy el proceso Y: mi pid es %d. Mi padre es %d. Mi abuelo es %d. Mi bisabuelo es %d\n",getpid(), getppid(),pidAglobal,pidEjec);
+     pause();
+    }
+    
+    pid = fork();
+    
+    if(pid ==0){
+     printf("Soy el proceso Z: mi pid es %d. Mi padre es %d. Mi abuelo es %d. Mi bisabuelo es %d\n",getpid(), getppid(),pidAglobal,pidEjec);
+
     }else{
-
-      pid==fork();
-
-      if(pid ==0){
-      printf("Soy el proceso Y: mi pid es %d. Mi padre es %d. Mi abuelo es %d. Mi bisabuelo es %d\n",getpid(), getppid(),pidAglobal,pidEjec);
       pause();
-    }else{
-      pid = fork();
-      pause(); //paramos a B
-    }
     }
 
-   if(pid ==0){  //solo lo debe de ejecutar Z
-  
-   }
+    printf("solo deberia ser yo %d\n",getpid());
+    signal(SIGALRM,Zfunction);
+    alarm(seconds);
+    pause();
+
    
-
-   sleep(20);
+  
     exit(0);
 
 
