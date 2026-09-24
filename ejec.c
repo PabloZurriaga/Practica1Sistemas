@@ -5,19 +5,23 @@
 #include <sys/wait.h>
 
 pid_t pidAglobal;
-
-
+pid_t pidZglobal; //para la destruccion secuencial del arbol;
 
 void Zfunction(){
-   printf("soy %d y acabo de recibir mi alarma\n",getpid());
+  //envia señal  a A para que ejecute pstree
    kill(pidAglobal,SIGUSR1);
 }
 
 
-void Afunction(){
-   printf("soy %d y me ha avisado Z\n",getpid());
+void Afunction(){ //A recibe la señal, crea un hijo que hace el pstree, espera a que este muera y luego hara un wait(NULL) en el main
+   pid_t p =fork();
+   if(p == 0){
+    execlp("pstree", "pstree", NULL);
+    exit(0); 
+   }
+  kill(pidZglobal,)
+  wait(NULL);
 }
-
 
 
 
@@ -47,14 +51,17 @@ int main(int argc, char *argv[]){
       pid = fork(); // proceso B comienza aquí;
       
       if(pid == 0){
+
       printf("Soy el proceso B: mi pid es %d. Mi padre es %d. Mi abuelo es %d\n",getpid(), getppid(),pidEjec);
+
       }else{
-        wait(NULL); //hacemos que A espere a que su hijo finalice
+        pause(); //hacemos que A espere a recibir la señal y luego a  que su hijo finalice
+        wait(NULL);
+        exit(0);
       }
     }else{ 
-
       wait(NULL);//hacemos que ejec espere a que su hijo directo finalice
-
+      exit(0);
     }
  
     //esto lo hace solo B
@@ -62,29 +69,34 @@ int main(int argc, char *argv[]){
 
     if(pid ==0){
      printf("Soy el proceso X: mi pid es %d. Mi padre es %d. Mi abuelo es %d. Mi bisabuelo es %d\n",getpid(), getppid(),pidAglobal,pidEjec);
-     pause();
+     pause(); //paramos a X
+     exit(0);
     }
     pid = fork();
 
     if(pid ==0){
      printf("Soy el proceso Y: mi pid es %d. Mi padre es %d. Mi abuelo es %d. Mi bisabuelo es %d\n",getpid(), getppid(),pidAglobal,pidEjec);
-     pause();
+     pause(); //paramos a Y
+     exit(0);
     }
     
     pid = fork();
     
     if(pid ==0){
      printf("Soy el proceso Z: mi pid es %d. Mi padre es %d. Mi abuelo es %d. Mi bisabuelo es %d\n",getpid(), getppid(),pidAglobal,pidEjec);
-
+     pidZglobal = getpid();
     }else{
       pause();
+      //paramos a B y lo preparamos para morir cuando reciba la señal
+      exit(0);
     }
 
-    printf("solo deberia ser yo %d\n",getpid());
+    //Z se pausa durante n segundos y despues avisa a A
     signal(SIGALRM,Zfunction);
     alarm(seconds);
-    pause();
-
+    
+    pause(); //primer bloqueo hasta que se recibe la alarma
+    pause(); //segundo bloqueo hasta que se destruya de manera secuencial el arbol
    
   
     exit(0);
